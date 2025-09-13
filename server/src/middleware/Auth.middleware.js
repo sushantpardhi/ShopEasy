@@ -10,6 +10,19 @@ export const authMiddleware = (req, res, next) => {
         req.user = jwt.verify(token, process.env.JWT_SECRET);
         next();
     } catch (err) {
-        return Response.error(res, "Invalid or expired token", {}, 403, "FORBIDDEN", err.message);
+      // Clear the invalid/expired token cookie
+      res.clearCookie("token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+      });
+      return Response.error(
+        res,
+        "Invalid or expired token",
+        {},
+        401,
+        "UNAUTHORIZED",
+        err.message
+      );
     }
 };

@@ -2,27 +2,70 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import "./Header.css";
 import { AuthContext } from "../../Context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { productApi } from "../../api/productApi";
 
 const Header = ({ onMobileMenuToggle, isMobileMenuOpen }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [cartCount, setCartCount] = useState(3);
   const [wishlistCount, setWishlistCount] = useState(5);
   const [showAccountDropdown, setShowAccountDropdown] = useState(false);
+  const [searchRecommendations, setSearchRecommendations] = useState([]);
+  const [showRecommendations, setShowRecommendations] = useState(false);
   const dropdownRef = useRef(null);
+  const searchRef = useRef(null);
 
   // Get authentication data from context
   const { user, logout, loading } = useContext(AuthContext);
   const isLoggedIn = !!user;
   const navigate = useNavigate();
 
+  console.log(isLoggedIn, user);
+
   const handleSearch = (e) => {
     e.preventDefault();
-    console.log("Searching for:", searchQuery);
+    if (searchQuery.trim()) {
+      setShowRecommendations(false);
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+    }
   };
 
-  const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
+  const handleSearchChange = async (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+
+    if (query.trim().length >= 2) {
+      try {
+        const result = await productApi.getSearchRecommendations(query);
+        if (result.success) {
+          setSearchRecommendations(result.data);
+          setShowRecommendations(true);
+        }
+      } catch (error) {
+        console.error("Error fetching search recommendations:", error);
+      }
+    } else {
+      setSearchRecommendations([]);
+      setShowRecommendations(false);
+    }
   };
+
+  const handleRecommendationClick = (product) => {
+    setSearchQuery(product.name);
+    setShowRecommendations(false);
+    navigate(`/product/${product._id}`);
+  };
+
+  // Close recommendations when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setShowRecommendations(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleAccountClick = () => {
     setShowAccountDropdown(!showAccountDropdown);
@@ -61,24 +104,33 @@ const Header = ({ onMobileMenuToggle, isMobileMenuOpen }) => {
     navigate("/register");
   };
 
+  const handleDashboardClick = () => {
+    setShowAccountDropdown(false);
+    if (user.role === "admin") {
+      navigate("/admin/dashboard");
+    } else if (user.role === "seller") {
+      navigate("/seller/dashboard");
+    }
+    console.log("Redirect to dashboard");
+  };
+
   const handleWishlistClick = () => {
     setShowAccountDropdown(false);
     navigate("/wishlist");
     console.log("Redirect to wishlist page");
-  }
+  };
 
   const handleCartClick = () => {
     setShowAccountDropdown(false);
     navigate(`/user/${user.id}/cart`);
     console.log("Redirect to cart page");
-  }
+  };
 
   const handleProfileClick = () => {
     setShowAccountDropdown(false);
     navigate(`/profile/${user.id}`);
     console.log("Redirect to profile page");
   };
-
 
   const handleOrdersClick = () => {
     setShowAccountDropdown(false);
@@ -128,7 +180,7 @@ const Header = ({ onMobileMenuToggle, isMobileMenuOpen }) => {
         </div>
 
         {/* Search Bar */}
-        <div className="search-section">
+        <div className="search-section" ref={searchRef}>
           <form className="search-form" onSubmit={handleSearch}>
             <div className="search-container">
               <input
@@ -138,6 +190,22 @@ const Header = ({ onMobileMenuToggle, isMobileMenuOpen }) => {
                 onChange={handleSearchChange}
                 className="search-input"
               />
+              {showRecommendations && searchRecommendations.length > 0 && (
+                <div className="search-recommendations">
+                  {searchRecommendations.map((product) => (
+                    <div
+                      key={product._id}
+                      className="recommendation-item"
+                      onClick={() => handleRecommendationClick(product)}
+                    >
+                      <div className="recommendation-name">{product.name}</div>
+                      <div className="recommendation-price">
+                        ${product.price}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
               <button type="submit" className="search-btn">
                 <svg
                   width="20"
@@ -175,45 +243,78 @@ const Header = ({ onMobileMenuToggle, isMobileMenuOpen }) => {
 
           {/* Desktop Actions */}
           <div className="desktop-actions">
-            {/* Wishlist */}
-            <button className="action-btn wishlist-btn" onClick={handleWishlistClick}>
-              <div className="btn-content">
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
+            {user && (user.role === "admin" || user.role === "seller") ? (
+              <button
+                className="action-btn dashboard-btn"
+                onClick={handleDashboardClick}
+              >
+                <div className="btn-content">
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                  </svg>
+                </div>
+                <span className="btn-label">Dashboard</span>
+              </button>
+            ) : (
+              <>
+                {/* Wishlist */}
+                <button
+                  className="action-btn wishlist-btn"
+                  onClick={handleWishlistClick}
                 >
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                </svg>
-                {wishlistCount > 0 && (
-                  <span className="badge wishlist-badge">{wishlistCount}</span>
-                )}
-              </div>
-              <span className="btn-label">Wishlist</span>
-            </button>
+                  <div className="btn-content">
+                    <svg
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                    >
+                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                    {wishlistCount > 0 && (
+                      <span className="badge wishlist-badge">
+                        {wishlistCount}
+                      </span>
+                    )}
+                  </div>
+                  <span className="btn-label">Wishlist</span>
+                </button>
 
-            {/* Cart */}
-            <button className="action-btn cart-btn">
-              <div className="btn-content" onClick={handleCartClick}>
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                >
-                  <path d="M9 22a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path>
-                  <path d="M20 22a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path>
-                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                </svg>
-                {cartCount > 0 && (
-                  <span className="badge cart-badge">{cartCount}</span>
-                )}
-              </div>
-              <span className="btn-label">Cart</span>
-            </button>
+                {/* Cart */}
+                <button className="action-btn cart-btn">
+                  <div className="btn-content" onClick={handleCartClick}>
+                    <svg
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                    >
+                      <path d="M9 22a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path>
+                      <path d="M20 22a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path>
+                      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                    </svg>
+                    {cartCount > 0 && (
+                      <span className="badge cart-badge">{cartCount}</span>
+                    )}
+                  </div>
+                  <span className="btn-label">Cart</span>
+                </button>
+              </>
+            )}
 
             {/* Account */}
             <div className="account-section" ref={dropdownRef}>

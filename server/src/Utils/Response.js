@@ -1,5 +1,5 @@
 class Response {
-    static async success(
+    static success(
         res,
         message = "Success",
         data = {},
@@ -18,7 +18,7 @@ class Response {
         });
     }
 
-    static async error(
+    static error(
         res,
         message = "Something went Wrong",
         data = {},

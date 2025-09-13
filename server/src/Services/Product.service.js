@@ -18,6 +18,25 @@ class ProductService {
     });
   };
 
+  getSearchRecommendations = async (query) => {
+    // Create a case-insensitive regex pattern for the search query
+    const searchPattern = new RegExp(query, "i");
+
+    // Search in both name and description, limit to 5 suggestions
+    return ProductModel.find({
+      $or: [
+        { name: { $regex: searchPattern } },
+        { description: { $regex: searchPattern } },
+      ],
+    })
+      .select("name description price") // Only return necessary fields
+      .limit(5)
+      .populate({
+        path: "category",
+        select: "name",
+      });
+  };
+
   getProductById = async (id) => {
     return ProductModel.findById(id).populate({
       path: "category",

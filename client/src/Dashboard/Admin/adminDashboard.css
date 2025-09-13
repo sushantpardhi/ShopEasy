@@ -1,0 +1,149 @@
+/* AdminDashboard.css */
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f6f8;
+    color: #333;
+}
+
+.sections-nav {
+    display: flex;
+    width: 100%;
+    border-bottom: 1px solid #ddd;
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 30px;
+}
+
+.sections-nav button {
+    background: transparent;
+    border: none;
+    padding: 12px 0;
+    cursor: pointer;
+    color: #555;
+    position: relative;
+    transition: color 0.3s ease;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    flex: 1; /* Make buttons take equal width */
+    text-align: center; /* Center text inside buttons */
+    font-size: 1.2rem;
+}
+
+.sections-nav button:hover {
+    color: #1976d2;
+}
+
+.sections-nav button.active {
+    color: #1976d2;
+    font-weight: 700;
+}
+
+.sections-nav button.active::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    width: 100%;
+    height: 3px;
+    background-color: #1976d2;
+    border-radius: 3px 3px 0 0;
+    transition: width 0.3s ease;
+}
+
+
+.admin-dashboard {
+    margin: 30px 2rem;
+    padding: 0 20px 40px 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgb(0 0 0 / 0.1);
+}
+
+.admin-dashboard h1 {
+    /*text-align: center;*/
+    font-weight: 700;
+    font-size: 2.5rem;
+    padding: 20px 0 40px 0;
+    color: #222;
+}
+
+/* Chart grid container */
+.chart-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+    margin-bottom: 50px;
+}
+
+/* Each chart box */
+.chart-box {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 3px 10px rgb(0 0 0 / 0.1);
+    padding: 15px 20px 25px 20px;
+    max-height: 350px;
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-box h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: #1976d2;
+    text-align: center;
+    border-bottom: 2px solid #1976d2;
+    padding-bottom: 8px;
+    flex-shrink: 0;
+}
+
+.chart-wrapper {
+    flex-grow: 1;
+    max-height: 280px;
+}
+
+.manage-section {
+    margin-bottom: 50px;
+}
+
+.manage-section h2 {
+    margin-bottom: 20px;
+}
+
+.manage-section p {
+    background: #f9fafb;
+    border: 1px solid #ddd;
+    padding: 15px 20px;
+    border-radius: 6px;
+    font-size: 1rem;
+    color: #555;
+    box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.05);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .admin-dashboard {
+        margin: 15px;
+        padding: 15px 10px 30px 10px;
+    }
+
+    .admin-dashboard h1 {
+        font-size: 2rem;
+        padding-bottom: 25px;
+    }
+
+    .manage-section h2 {
+        font-size: 1.3rem;
+    }
+}
+
+@media (max-width: 500px) {
+    .chart-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .chart-box {
+        max-height: none;
+    }
+}

@@ -16,5 +16,9 @@ router.get(
   asyncHandler(ProductController.getByCategory)
 );
 router.get("/search", asyncHandler(ProductController.searchProduct));
+router.get(
+  "/search-recommendations",
+  asyncHandler(ProductController.getSearchRecommendations)
+);
 
 export default router;  

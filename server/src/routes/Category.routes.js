@@ -5,13 +5,23 @@ import {isAdmin} from "../middleware/isAdmin.middleware.js";
 
 const router = express.Router();
 
-router.use(isAdmin);
-
-router.post("/add", asyncHandler(CategoryController.add));
+// Public routes
 router.get("/getAll", asyncHandler(CategoryController.getAll));
-router.get("/get/:id", asyncHandler(CategoryController.getByID));
-router.put("/update/:id", asyncHandler(CategoryController.update));
-router.delete("/delete/:id", asyncHandler(CategoryController.delete));
-router.get("/getByParent/:parentId", asyncHandler(CategoryController.getByParent));
+router.get("/root", asyncHandler(CategoryController.getRootCategories));
+router.get("/:id", asyncHandler(CategoryController.getByID));
+router.get(
+  "/:id/ancestors",
+  asyncHandler(CategoryController.getCategoryWithAncestors)
+);
+router.get(
+  "/:id/children",
+  asyncHandler(CategoryController.getChildCategories)
+);
+
+// Admin only routes
+router.use(isAdmin);
+router.post("/", asyncHandler(CategoryController.add));
+router.put("/:id", asyncHandler(CategoryController.update));
+router.delete("/:id", asyncHandler(CategoryController.deleteByID));
 
 export default router;

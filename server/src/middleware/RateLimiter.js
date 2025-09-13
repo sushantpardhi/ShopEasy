@@ -1,14 +1,16 @@
 import rateLimit from "express-rate-limit";
 
+const isDevelopment = process.env.NODE_ENV !== "production";
+
 const rateLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per windowMs
-    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-    message: {
-        status: 429,
-        error: "Too many requests from this IP, please try again later.",
-    },
+  windowMs: isDevelopment ? 1 * 60 * 1000 : 15 * 60 * 1000, // 1 minute in dev, 15 minutes in prod
+  max: isDevelopment ? 3000 : 1000, // Higher limit in development
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    status: 429,
+    error: "Too many requests from this IP, please try again later.",
+  },
 });
 
 export default rateLimiter;

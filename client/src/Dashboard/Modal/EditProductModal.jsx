@@ -1,29 +1,58 @@
 import { useState, useContext, useEffect } from "react";
-import "./AddProductModal.css";
+import "./AddProductModal.css"; // Reuse the same CSS
 import { CategoryContext } from "../../Context/CategoryContext";
-
 import { ProductContext } from "../../Context/ProductContext";
 
-function AddProductModal({ onClose, onAddProduct }) {
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    price: "",
-    category: "",
-    stock: "",
+function EditProductModal({ product, onClose, onProductUpdated }) {
+  console.log("EditProductModal - received product:", product); // Debug log
+
+  const [formData, setFormData] = useState(() => {
+    if (!product) {
+      console.error("No product provided to EditProductModal");
+      return {
+        name: "",
+        description: "",
+        price: "",
+        category: "",
+        stock: "",
+      };
+    }
+
+    // Safe access to category ID
+    let categoryId = "";
+    if (product.category) {
+      categoryId =
+        typeof product.category === "object"
+          ? product.category._id || product.category.id || ""
+          : product.category;
+    }
+
+    console.log("EditProductModal - initializing with categoryId:", categoryId); // Debug log
+
+    return {
+      name: product.name || "",
+      description: product.description || "",
+      price: product.price || "",
+      category: categoryId,
+      stock: product.stock || "",
+    };
   });
 
   const [errors, setErrors] = useState({});
-  const { categories, loading, error, fetchCategories } =
-    useContext(CategoryContext);
-  const { addProduct } = useContext(ProductContext);
+  const {
+    categories,
+    loading: categoryLoading,
+    error: categoryError,
+    fetchCategories,
+  } = useContext(CategoryContext);
+  const { updateProduct, loading } = useContext(ProductContext);
 
   useEffect(() => {
     fetchCategories();
   }, [fetchCategories]);
 
   const handleChange = (e) => {
-    const { name, value, files } = e.target;
+    const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -39,43 +68,45 @@ function AddProductModal({ onClose, onAddProduct }) {
     if (!formData.stock) newErrors.stock = "Stock is required";
     else if (isNaN(formData.stock) || Number(formData.stock) < 0)
       newErrors.stock = "Enter valid stock quantity";
-    // Temporarily disable image validation until image upload is implemented
-    // if (!formData.image) newErrors.image = "Product image is required";
-    console.log("Validation errors:", newErrors); // Debug log
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form submitted with data:", formData); // Debug log
+    console.log("Form submitted with data:", formData);
 
     if (!validate()) {
-      console.log("Form validation failed"); // Debug log
+      console.log("Form validation failed");
       return;
     }
 
-    console.log("Form validation passed, attempting to add product"); // Debug log
+    console.log("Form validation passed, attempting to update product");
     try {
-      const result = await addProduct(
-        formData.name,
-        Number(formData.price),
-        formData.description,
-        formData.category,
-        Number(formData.stock)
-      );
+      const result = await updateProduct(product._id, {
+        name: formData.name,
+        description: formData.description,
+        price: Number(formData.price),
+        category: formData.category,
+        stock: Number(formData.stock),
+      });
 
       if (result.success) {
-        if (onAddProduct) {
-          onAddProduct(formData);
+        if (onProductUpdated) {
+          onProductUpdated(result.product);
         }
         onClose();
+      } else {
+        setErrors((prev) => ({
+          ...prev,
+          submit: result.error.message || "Failed to update product",
+        }));
       }
     } catch (error) {
-      console.error("Failed to add product:", error);
+      console.error("Failed to update product:", error);
       setErrors((prev) => ({
         ...prev,
-        submit: "Failed to add product. Please try again.",
+        submit: "Failed to update product. Please try again.",
       }));
     }
   };
@@ -83,7 +114,7 @@ function AddProductModal({ onClose, onAddProduct }) {
   return (
     <div className="modal-backdrop">
       <div className="modal-content">
-        <h3>Add New Product</h3>
+        <h3>Edit Product</h3>
         <form onSubmit={handleSubmit} className="product-form" noValidate>
           <div className="form-group">
             <label htmlFor="name">Product Name</label>
@@ -134,26 +165,30 @@ function AddProductModal({ onClose, onAddProduct }) {
               value={formData.category}
               onChange={handleChange}
               className={errors.category ? "input-error" : ""}
-              disabled={loading}
+              disabled={categoryLoading}
             >
               <option value="">-- Select category --</option>
-              {!loading &&
-                !error &&
+              {!categoryLoading &&
+                !categoryError &&
+                Array.isArray(categories) &&
                 categories.map((cat) => (
                   <option key={cat._id} value={cat._id}>
-                    {cat.name}
+                    {cat.name || "Unnamed Category"}
                   </option>
                 ))}
             </select>
             {errors.category && (
               <span className="error-text">{errors.category}</span>
             )}
-            {loading && (
+            {categoryLoading && (
               <span className="info-text">Loading categories...</span>
             )}
-            {error && (
+            {categoryError && (
               <span className="error-text">
-                Error loading categories: {error}
+                Error loading categories:{" "}
+                {typeof categoryError === "string"
+                  ? categoryError
+                  : "Failed to load categories"}
               </span>
             )}
           </div>
@@ -177,7 +212,7 @@ function AddProductModal({ onClose, onAddProduct }) {
           )}
           <div className="button-group">
             <button type="submit" className="submit-btn" disabled={loading}>
-              {loading ? "Adding Product..." : "Add Product"}
+              {loading ? "Updating Product..." : "Update Product"}
             </button>
             <button
               type="button"
@@ -185,7 +220,7 @@ function AddProductModal({ onClose, onAddProduct }) {
               className="close-modal-btn"
               disabled={loading}
             >
-              Close
+              Cancel
             </button>
           </div>
         </form>
@@ -194,4 +229,4 @@ function AddProductModal({ onClose, onAddProduct }) {
   );
 }
 
-export default AddProductModal;
+export default EditProductModal;

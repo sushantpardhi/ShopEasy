@@ -5,16 +5,35 @@ import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import Header from "./components/Header/Header";
 import { useContext, useState } from "react";
 import { AuthContext } from "./Context/AuthContext";
-import Explore from "./Page/Explore/Explore";
-import SingleProduct from "./Page/Product/SingleProduct/SingleProduct";
-import Category from "./Page/Category/Category";
 import Navigation from "./components/Navigation/Navigation";
-import UserProfile from "./Page/UserProfile/UserProfile";
+import AddProduct from "./Page/Product/AddProduct/AddProduct";
+import AdminDashboard from "./Dashboard/Admin/adminDashboard";
 
 // Public Route Component (only accessible when not logged in)
 const PublicRoute = ({ children }) => {
   const { user } = useContext(AuthContext);
   return user ? <Navigate to="/" replace /> : children;
+};
+
+const AdminRoute = ({ children }) => {
+  const { user, loading } = useContext(AuthContext);
+
+  // Show nothing while checking authentication
+  if (loading) {
+    return null;
+  }
+
+  return user?.role === "admin" ? children : <Navigate to="/" replace />;
+};
+
+// Seller Route Component (only accessible by seller or admin users)
+const SellerRoute = ({ children }) => {
+  const { user } = useContext(AuthContext);
+  return user?.role === "seller" || user?.role === "admin" ? (
+    children
+  ) : (
+    <Navigate to="/" replace />
+  );
 };
 
 function App() {
@@ -65,10 +84,22 @@ function App() {
             </PublicRoute>
           }
         />
-        {/* <Route path="/" element={<Explore />} /> */}
-        {/* <Route path="/product/:id" element={<SingleProduct />} />
-          <Route path="/categories" element={<Category />} />
-          <Route path='/profile/:id' element={<UserProfile/>} /> */}
+        <Route
+          path="/addProduct"
+          element={
+            <AdminRoute>
+              <AddProduct />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/dashboard"
+          element={
+            <AdminRoute>
+              <AdminDashboard />
+            </AdminRoute>
+          }
+        />
       </Routes>
     </div>
   );

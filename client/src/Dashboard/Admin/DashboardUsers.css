@@ -1,4 +1,4 @@
-.dashboard-product {
+.dashboard-users {
   padding: 2rem;
 }
 
@@ -14,7 +14,7 @@
   color: #2c3e50;
 }
 
-.add-product-button {
+.add-user-button {
   background-color: #28a745;
   color: white;
   border: none;
@@ -27,8 +27,17 @@
   gap: 8px;
 }
 
-.add-product-button:hover {
+.add-user-button:hover {
   background-color: #218838;
+}
+
+.current-user-note {
+  color: #6c757d;
+  font-style: italic;
+  padding: 4px 8px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  font-size: 0.9em;
 }
 
 .table-container {
@@ -123,4 +132,27 @@ tr:hover {
   color: #6c757d;
   padding: 2rem;
   font-style: italic;
+}
+
+.user-role {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.role-admin {
+  background-color: #ffd700;
+  color: #000;
+}
+
+.role-seller {
+  background-color: #3498db;
+  color: white;
+}
+
+.role-user {
+  background-color: #e2e8f0;
+  color: #4a5568;
 }

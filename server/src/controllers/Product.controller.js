@@ -4,6 +4,39 @@ import Response from "../Utils/Response.js";
 
 
 class ProductController {
+  getSearchRecommendations = async (req, res) => {
+    const { query } = req.query;
+
+    try {
+      if (!query || query.trim().length < 2) {
+        return Response.error(
+          res,
+          "Search query must be at least 2 characters long",
+          {},
+          400,
+          "VALIDATION_ERROR"
+        );
+      }
+
+      const recommendations = await ProductService.getSearchRecommendations(
+        query
+      );
+      return Response.success(
+        res,
+        "Search recommendations retrieved successfully",
+        recommendations
+      );
+    } catch (error) {
+      return Response.error(
+        res,
+        "Error fetching search recommendations",
+        error,
+        500,
+        "SERVER_ERROR"
+      );
+    }
+  };
+
   add = async (req, res) => {
     const { name, price, description, category, stock } = req.body;
     try {

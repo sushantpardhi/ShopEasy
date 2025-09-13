@@ -56,7 +56,7 @@ app.use((req, res) => {
   Response.error(res, "Route Not Found", {}, 404, "NOT_FOUND");
 });
 
-connectDB();
+await connectDB();
 
 app.use(errorHandler);
 
