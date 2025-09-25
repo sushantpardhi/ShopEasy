@@ -15,8 +15,9 @@ class WishlistService {
                 note,
                 products: []
             });
+            logger.info("Wishlist Created");
+
             return await wishlist.save();
-            logger.info("Wishlist Created")
         } catch (err) {
             logger.error(`Wishlist error: ${err}`)
             throw new Error(`Failed to create wishlist ${err}`)
